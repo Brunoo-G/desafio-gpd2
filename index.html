@@ -275,13 +275,13 @@ const Q = [
   o:["Son lo mismo con distinto nombre","El prototipo representa la solución; el experimento es el método para validar una hipótesis y medir resultados","El experimento siempre es código en producción y el prototipo siempre es en papel","El prototipo se hace después del lanzamiento"], a:1,
   e:"Un prototipo puede usarse dentro de un experimento, pero el experimento define la hipótesis, la prueba y la métrica de éxito."},
  {t:"Pregunta de cortesía", q:"¿Quién es el campeón de la Liga Argentina 2026?",
-  o:["River Plate","Racing Club","Boquita","Vélez Sarsfield"], a:2, fixed:0,
+  o:["River Plate","Racing Club","Boquita","Vélez Sarsfield"], a:2, fixed:10,
   e:""},
  {t:"Efemérides", q:"¿Qué pasó el 9/12?",
-  o:["Se declaró la Independencia argentina","Llegó el hombre a la Luna","Perdió Boquita","Se inauguró el Obelisco"], a:2, fixed:2,
+  o:["Se declaró la Independencia argentina","Llegó el hombre a la Luna","Perdió Boquita","Se inauguró el Obelisco"], a:2, fixed:12,
   e:""},
  {t:"Atención", q:"La respuesta correcta es:",
-  o:["A","B","C","D"], a:3,
+  o:["A","B","C","D"], a:3, fixed:"last",
   e:"Era literal: la respuesta correcta era la D."}
 ];
 const L = ["A","B","C","D"];
@@ -667,13 +667,14 @@ async function writeState(next){
   catch(e){ console.error(e); writeErr = "No se pudo guardar el cambio. Revisá la conexión."; render(); }
 }
 function createGame(){
-  /* Preguntas con posición fija (fixed = índice en la partida); el resto, al azar. */
+  /* Preguntas con posición fija (fixed = índice en la partida, o "last" = última); el resto, al azar. */
   const fixed = Q.map((q,i) => ({i, pos:q.fixed})).filter(x => x.pos != null);
   const rest = Q.map((_,i) => i).filter(i => Q[i].fixed == null);
   for (let i = rest.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [rest[i],rest[j]] = [rest[j],rest[i]]; }
   rest.length = Math.max(0, Math.min(setupDraft.nq || Q.length, Q.length) - fixed.length);
   const order = rest.slice();
-  fixed.sort((a,b) => a.pos - b.pos).forEach(f => order.splice(Math.min(f.pos, order.length), 0, f.i));
+  fixed.filter(f => typeof f.pos === "number").sort((a,b) => a.pos - b.pos).forEach(f => order.splice(Math.min(f.pos, order.length), 0, f.i));
+  fixed.filter(f => f.pos === "last").forEach(f => order.push(f.i));
   const teams = Array.from({length:setupDraft.n}, (_,i) => ({id:"t"+(i+1), name:(setupDraft.names[i]||"").trim() || DEFAULT_NAMES[i], color:COLORS[i]}));
   if (setupDraft.otro) teams.push({...OTRO});
   D.set(ROOT + "/config", {n:setupDraft.n, dur:setupDraft.dur, nq:setupDraft.nq, otro:setupDraft.otro, names:setupDraft.names.slice(0, setupDraft.n).map(x => (x||"").trim())}).catch(e => console.error(e));
