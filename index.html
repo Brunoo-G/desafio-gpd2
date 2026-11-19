@@ -216,10 +216,10 @@ const Q = [
   e:"Un prototipo puede usarse dentro de un experimento, pero el experimento define la hipótesis, la prueba y la métrica de éxito."},
  {t:"Pregunta de cortesía", q:"¿Quién es el campeón de la Liga Argentina 2026?",
   o:["River Plate","Racing Club","Boquita","Vélez Sarsfield"], a:2, fixed:0,
-  e:"Pregunta de cortesía del profe. ¡Dale Boca!"},
+  e:""},
  {t:"Efemérides", q:"¿Qué pasó el 9/12?",
-  o:["Se declaró la Independencia argentina","Se fundó Boca Juniors","Perdió Boquita","Se inauguró el Obelisco"], a:2, fixed:2,
-  e:"9 de diciembre de 2018: River le ganó 3-1 a Boca la final de la Copa Libertadores en Madrid."},
+  o:["Se declaró la Independencia argentina","Llegó el hombre a la Luna","Perdió Boquita","Se inauguró el Obelisco"], a:2, fixed:2,
+  e:""},
  {t:"Atención", q:"La respuesta correcta es:",
   o:["A","B","C","D"], a:3,
   e:"Era literal: la respuesta correcta era la D."}
@@ -448,7 +448,7 @@ function hostView(){
       <div class="qmeta"><span class="qnum">Pregunta ${qi+1} de ${total}</span><span class="topic">${esc(qq.t)}</span></div>
       <div class="qtext">${esc(qq.q)}</div>
       <div class="opts">${qq.o.map((o,j) => `<div class="opt ${j===qq.a?"right":(counts[j]?"wrong":"dim")}"><span class="l">${L[j]}</span><span>${esc(o)}</span><span class="cnt">${counts[j]||0}</span></div>`).join("")}</div>
-      <p class="expl">${esc(qq.e)}</p>
+      ${qq.e ? `<p class="expl">${esc(qq.e)}</p>` : ""}
     </div>
     <div class="card"><div class="spread"><h2>Puntos por equipo</h2><button class="btn primary" id="next">${isLast ? "Ver ranking final" : "Siguiente pregunta"}</button></div>${rulesHTML}${boardHTML(qi)}</div>`;
   }
@@ -519,7 +519,7 @@ function playerView(){
       <div class="big" style="color:${myPick==null?"var(--muted)":ok?"var(--ok)":"var(--bad)"}">${myPick==null ? "0" : ok ? "✓ " + fmt(PTS_OK) : "✗ " + PTS_BAD}</div>
       <h2>${myPick == null ? "No respondiste a tiempo" : ok ? "¡Correcto!" : "Incorrecto"}</h2>
       <p>La respuesta correcta es la <b>${L[qq.a]}</b>: ${esc(qq.o[qq.a])}</p>
-      <p class="muted">${esc(qq.e)}</p>
+      ${qq.e ? `<p class="muted">${esc(qq.e)}</p>` : ""}
       ${rr ? `<p>Tu equipo en esta pregunta: <b>${rr.ok||0} ✓ · ${rr.bad||0} ✗ = ${fmt(d)} pts</b></p>` : ""}</div>`;
   }
   if (state.status === "final"){
