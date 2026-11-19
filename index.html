@@ -33,7 +33,7 @@ body{color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.5;m
 body::before{content:"";position:fixed;left:50%;bottom:-40vmin;width:64vmin;height:64vmin;transform:translateX(-50%);border-radius:50%;z-index:-1;pointer-events:none;
   background:linear-gradient(180deg,#ffd166 0%,#ff8a3d 45%,#ff3c8e 100%);opacity:.10;
   -webkit-mask:repeating-linear-gradient(180deg,#000 0 14px,transparent 14px 20px);mask:repeating-linear-gradient(180deg,#000 0 14px,transparent 14px 20px)}
-#app{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+#app{max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
 /* encabezado */
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:2px solid transparent;border-image:var(--sunset) 1}
 .brand{font-family:var(--f-script);font-size:32px;line-height:1.1;color:var(--pink);display:flex;align-items:baseline;gap:8px;padding-top:2px}
@@ -145,6 +145,17 @@ button.opt:hover:not(:disabled){border-color:var(--lc);box-shadow:0 0 0 1px var(
 .joininfo{display:flex;flex-direction:column;gap:14px;min-width:0}
 .joinurl{font-family:var(--f-cond);font-weight:700;font-size:clamp(22px,2.6vw,32px);color:var(--gold);overflow-wrap:anywhere;line-height:1.2}
 .steps{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px;font-size:clamp(17px,1.7vw,21px);color:var(--soft)}
+/* sala de espera con portada */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,24vw,360px);gap:18px;align-items:stretch}
+.cover{display:block;width:100%;height:100%;object-fit:cover;border-radius:18px;border:2px solid var(--line-2);box-shadow:0 14px 40px rgba(5,0,12,.55);aspect-ratio:1376/768}
+.joinside{align-items:center;text-align:center;justify-content:center;gap:12px;padding:18px}
+.joinside h2{font-size:26px}
+.joinside .qr{width:100%;max-width:250px}
+.joinside .joinurl{font-size:20px}
+.joinside .lead{font-size:17px}
+.startbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 24px}
+.startbar .progress{flex-direction:row;align-items:center;flex-wrap:wrap;gap:16px}
+.btn.start{font-size:28px;padding:18px 48px}
 /* alumno */
 .me{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:16px;padding:12px 16px}
 .me .who{display:flex;flex-direction:column;min-width:0;line-height:1.2}
@@ -177,6 +188,7 @@ button.opt:hover:not(:disabled){border-color:var(--lc);box-shadow:0 0 0 1px var(
 .star{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--panel-2);border-radius:12px;padding:10px 14px;border-left:6px solid var(--c);font-size:18px}
 .star b{overflow-wrap:anywhere;font-weight:600}
 .star span{font-family:var(--f-cond);font-weight:700;font-size:19px;color:var(--gold);white-space:nowrap}
+@media (max-width:900px){ .hero{grid-template-columns:minmax(0,1fr)} .joinside .qr{max-width:280px} }
 @media (max-width:760px){
   body{font-size:17px}
   .card{padding:18px;border-radius:16px;gap:14px}
@@ -220,6 +232,7 @@ const firebaseConfig = {
 const COMISIONES = ["comision1","comision2","comision3","comision4"];  // códigos de comisión (el docente entra con link + ?docente y uno de estos códigos)
 const PTS_OK = 10;              // puntos por respuesta correcta
 const PTS_BAD = -5;             // puntos por respuesta incorrecta
+const PORTADA = "image.jpg";  // imagen de la sala de espera (archivo en el repositorio)
 /* ===================================================================== */
 
 const Q = [
@@ -478,16 +491,20 @@ function hostView(){
   const joinUrl = location.origin + location.pathname.replace(/index\.html$/, "") + "?c=" + room + (MOCK ? "&prueba" : "");
   const resetBtn = `<button class="btn small warn" id="reset">${confirmReset ? "Tocá de nuevo para confirmar" : "Nueva partida"}</button>`;
   if (state.status === "lobby"){
-    return `<div class="card">
-      <div class="spread"><h1>Sala de espera</h1>${resetBtn}</div>
-      <div class="lobby"><div class="qr" aria-label="Código QR para entrar al juego">${qrSvg(joinUrl)}</div>
-        <div class="joininfo"><h2>Sumate desde el celular</h2>
-          <ol class="steps"><li>Escaneá el QR con la cámara o entrá a:</li></ol>
-          <div class="joinurl">${esc(joinUrl.replace(/^https?:\/\//,""))}</div>
-          <ol class="steps" start="2"><li>Escribí tu nombre y elegí tu equipo.</li><li>Respondé cada pregunta antes de que termine el tiempo (${state.duration} s).</li></ol>
-          ${rulesHTML}</div></div></div>
+    return `<div class="hero">
+      <img class="cover" src="${PORTADA}" alt="Desafío GPD · Gestión de Productos Digitales">
+      <div class="joinside card">
+        <h2>Sumate desde el celular</h2>
+        <div class="qr" aria-label="Código QR para entrar al juego">${qrSvg(joinUrl)}</div>
+        <div class="joinurl">${esc(joinUrl.replace(/^https?:\/\//,""))}</div>
+        <p class="lead">Escribí tu nombre y elegí tu equipo.</p>
+      </div></div>
+    <div class="startbar">
+      <div class="progress"><span class="lbl"><b>${ps.length}</b> ${ps.length===1?"alumno conectado":"alumnos conectados"}</span>${rulesHTML}</div>
+      <button class="btn primary big start" id="start">Comenzar juego</button>
+    </div>
     <div class="card">
-      <div class="spread"><h3>${ps.length} ${ps.length===1?"alumno conectado":"alumnos conectados"}</h3><button class="btn primary big" id="start">Empezar el juego</button></div>
+      <div class="spread"><h3>Equipos</h3>${resetBtn}</div>
       <div class="teams">${state.teams.map(t => { const m = ps.filter(p => p.team === t.id);
         return `<div class="team ${m.length?"":"empty"}" style="--c:${t.color}"><span class="name">${esc(t.name)}</span><span class="big2">${m.length}</span>
         <span class="st">${m.length ? esc(m.map(p => p.name).slice(0,6).join(", ")) + (m.length>6?"…":"") : "Nadie todavía"}</span></div>`; }).join("")}</div></div>`;
