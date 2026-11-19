@@ -169,9 +169,6 @@ const Q = [
  {t:"Product Vision Board", q:"¿Qué resume un Product Vision Board?",
   o:["Público objetivo, necesidades, propuesta de valor y objetivos de negocio","Tareas del Sprint, responsables y fechas de entrega","Bugs abiertos, deuda técnica y prioridades de QA","Presupuesto de marketing por canal"], a:0,
   e:"Sintetiza en una sola herramienta para quién es el producto, qué problema resuelve, qué lo hace valioso y qué busca el negocio."},
- {t:"Roadmap", q:"Un inversor pide \"el roadmap\" del producto. ¿Qué le vas a mostrar?",
-  o:["Un contrato con fechas fijas que no se puede modificar","Las iniciativas y prioridades futuras, que se ajustan con nuevos aprendizajes","La lista de tareas técnicas del próximo Sprint","Un informe con las métricas del último trimestre"], a:1,
-  e:"El roadmap comunica la dirección y alinea expectativas. No es rígido: cambia con el mercado, los usuarios y la estrategia."},
  {t:"Tipos de métricas", q:"El CEO quiere un indicador para saber si el producto cumple sus objetivos de largo plazo. ¿Cuál es una métrica estratégica?",
   o:["Velocidad del equipo por Sprint","Bugs cerrados por semana","Tiempo promedio de despliegue","Retención de clientes a 6 meses"], a:3,
   e:"La retención mide resultados de negocio a largo plazo. Las otras tres miden la ejecución diaria: son métricas operativas."},
@@ -181,9 +178,6 @@ const Q = [
  {t:"Modelo AARRR", q:"Una app lanza \"Invitá a un amigo y ganá $2.000 de descuento\". ¿Qué etapa del AARRR busca mejorar?",
   o:["Activación","Retención","Referencia","Ingresos"], a:2,
   e:"Referencia (Referral): usuarios actuales que traen usuarios nuevos."},
- {t:"Gestión del cambio", q:"El equipo de ventas se resiste a usar el nuevo CRM que lanzó producto. ¿Cuál es la mejor primera acción?",
-  o:["Obligarlos a usarlo desde mañana","Involucrarlos: comunicar beneficios, capacitar y hacer un piloto","Mantener el sistema viejo en paralelo sin fecha de cierre","Esperar a que se adapten solos"], a:1,
-  e:"Comunicar, involucrar temprano, capacitar y acompañar la adopción reduce la resistencia."},
  {t:"Producto y Legales", q:"Una app quiere usar datos de sus usuarios para personalizar recomendaciones con IA. ¿Cuándo conviene sumar a Legales?",
   o:["Después del lanzamiento, si aparece un reclamo","Sólo si el producto se vende en otros países","Nunca, es tarea del equipo técnico","Desde el diseño de la funcionalidad, antes de desarrollarla"], a:3,
   e:"Incumplir normas (como protección de datos) puede traer sanciones, pérdida de confianza e incluso impedir vender el producto."},
@@ -196,9 +190,6 @@ const Q = [
  {t:"Product Hypothesis Canvas", q:"¿Qué ordena un Product Hypothesis Canvas?",
   o:["El presupuesto anual del área de producto","Problema, usuario, solución, supuestos y resultado esperado para validar","El organigrama del equipo de desarrollo","Las historias de usuario listas para el Sprint"], a:1,
   e:"Estructura una hipótesis para poder validarla con evidencia antes de invertir."},
- {t:"Presupuesto y priorización", q:"Hay presupuesto para una sola iniciativa este trimestre. ¿Cuál priorizás?",
-  o:["La que pidió el cliente más grande","La más fácil de desarrollar","La de mayor impacto en los objetivos estratégicos respecto de su costo","La más innovadora del mercado"], a:2,
-  e:"Con recursos limitados, el PM asigna inversión donde más valor genera para el usuario y el negocio."},
  {t:"Dual Track Agile", q:"En un equipo que trabaja con Dual Track Agile, ¿qué pasa mientras los desarrolladores construyen las funcionalidades del Sprint?",
   o:["Otro track investiga y valida las próximas oportunidades en paralelo","Todo el equipo espera a que termine el Sprint para investigar","Se congela el backlog hasta el próximo trimestre","Se corta el contacto con los usuarios hasta el lanzamiento"], a:0,
   e:"Discovery y Delivery corren en paralelo: mientras se construye lo ya validado, se exploran y validan las próximas ideas."},
@@ -206,23 +197,11 @@ const Q = [
   o:["Entregar funcionalidades en producción lo más rápido posible","Entender el problema y validar si vale la pena construir una solución","Corregir los bugs que reporta soporte","Definir el presupuesto anual del área"], a:1,
   e:"Discovery reduce la incertidumbre: investiga problemas, prueba ideas y valida hipótesis antes de comprometer desarrollo."},
  {t:"Delivery", q:"Una funcionalidad ya fue validada con usuarios. ¿Qué track se encarga ahora de construirla, probarla y lanzarla?",
-  o:["Discovery","Growth","Research","Delivery"], a:3,
+  o:["Discovery","Growth","Delivery","Research"], a:2,
   e:"Delivery construye, prueba y entrega lo que Discovery ya validó."},
- {t:"Experimento", q:"Antes de construir nada, el equipo publica un botón \"Envío express $500\" que solo registra cuántos lo tocan. ¿Qué están haciendo?",
-  o:["Un prototipo de alta fidelidad","Un criterio de aceptación","Una métrica de vanidad","Un experimento para validar una hipótesis de demanda"], a:3,
-  e:"Es un experimento (tipo \"fake door\"): mide comportamiento real para validar o refutar una hipótesis con muy poco esfuerzo."},
- {t:"Prototipo", q:"¿Para qué sirve principalmente un prototipo en Discovery?",
-  o:["Para reemplazar el código final del producto","Para medir los ingresos del trimestre","Para mostrar y probar una idea de solución con usuarios antes de desarrollarla","Para documentar la arquitectura técnica"], a:2,
-  e:"El prototipo hace tangible la solución (en papel, Figma, etc.) para obtener feedback rápido y barato."},
- {t:"Experimento y prototipo", q:"¿Cuál es la diferencia entre un prototipo y un experimento?",
-  o:["El prototipo representa la solución; el experimento es el método para validar una hipótesis y medir resultados","Son lo mismo con distinto nombre","El experimento siempre es código en producción y el prototipo siempre es en papel","El prototipo se hace después del lanzamiento"], a:0,
-  e:"Un prototipo puede usarse dentro de un experimento, pero el experimento define la hipótesis, la prueba y la métrica de éxito."},
  {t:"Burndown chart", q:"¿Qué muestra un burndown chart?",
-  o:["El trabajo que falta completar en el Sprint a lo largo del tiempo","Los ingresos acumulados del producto","La cantidad de usuarios activos por día","El presupuesto gastado por área"], a:0,
+  o:["Los ingresos acumulados del producto","El trabajo que falta completar en el Sprint a lo largo del tiempo","La cantidad de usuarios activos por día","El presupuesto gastado por área"], a:1,
   e:"Grafica el trabajo pendiente (puntos u horas) día a día, comparado con una línea ideal que llega a cero al final del Sprint."},
- {t:"Burndown chart", q:"A mitad del Sprint, la línea real del burndown está por ENCIMA de la línea ideal. ¿Qué significa?",
-  o:["El equipo va adelantado","El equipo va atrasado: queda más trabajo del previsto","El Sprint ya terminó","Se sumaron usuarios nuevos al producto"], a:1,
-  e:"Por encima de la ideal = queda más trabajo del esperado. Es una señal para revisar alcance o impedimentos."},
  {t:"Definition of Ready", q:"Antes de entrar al Sprint, una historia debe tener alcance claro, criterios de aceptación y estar estimada. ¿Cómo se llama ese acuerdo?",
   o:["Definition of Done","Definition of Ready","Product Vision Board","Burndown chart"], a:1,
   e:"La DoR define cuándo una historia está lista para empezar a desarrollarse."},
@@ -483,7 +462,7 @@ function setupView(){
     <div class="grid-setup">
       <label for="nTeams">Cantidad de equipos<select id="nTeams">${[2,3,4,5,6,7,8].map(n => `<option value="${n}" ${n===d.n?"selected":""}>${n} equipos</option>`).join("")}</select></label>
       <label for="dur">Tiempo por pregunta<select id="dur">${[20,30,45,60].map(n => `<option value="${n}" ${n===d.dur?"selected":""}>${n} segundos</option>`).join("")}</select></label>
-      <label for="nq">Cantidad de preguntas<select id="nq">${[10,15,Q.length].map(n => `<option value="${n}" ${n===d.nq?"selected":""}>${n===Q.length ? "Todas (" + n + ")" : n + " al azar"}</option>`).join("")}</select></label>
+      <label for="nq">Cantidad de preguntas<select id="nq">${[10,Q.length].map(n => `<option value="${n}" ${n===d.nq?"selected":""}>${n===Q.length ? "Todas (" + n + ")" : n + " al azar"}</option>`).join("")}</select></label>
     </div>
     <div class="grid-setup">${Array.from({length:d.n}, (_,i) => `<div class="teamrow"><span class="swatch" style="background:${COLORS[i]}"></span>
       <input id="tn${i}" data-tn="${i}" value="${esc(d.names[i])}" placeholder="Nombre del equipo ${i+1}" maxlength="28" aria-label="Nombre del equipo ${i+1}"></div>`).join("")}</div>
