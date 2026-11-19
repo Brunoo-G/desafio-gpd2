@@ -135,7 +135,7 @@ const firebaseConfig = {
   databaseURL: "https://juego-gpd2-default-rtdb.firebaseio.com",
   projectId: "juego-gpd2"
 };
-const PIN_DOCENTE = "gpd2";     // PIN para entrar como docente (link + ?docente)
+const COMISIONES = ["comision1","comision2","comision3","comision4"];  // códigos de comisión (el docente entra con link + ?docente y uno de estos códigos)
 const PTS_OK = 10;              // puntos por respuesta correcta
 const PTS_BAD = -5;             // puntos por respuesta incorrecta
 /* ===================================================================== */
@@ -182,7 +182,10 @@ const L = ["A","B","C","D"];
 const COLORS = ["#ff8a70","#4cc9e0","#ffcb47","#a594ff","#5fd38d","#ff9fd0","#7fa8ff","#f4a259"];
 const OTRO = {id:"otro", name:"Otro", color:"#c9d3e3"};
 const DEFAULT_NAMES = ["Equipo 1","Equipo 2","Equipo 3","Equipo 4","Equipo 5","Equipo 6","Equipo 7","Equipo 8"];
-const ROOT = "gpd2";
+const ROOT_BASE = "gpd2/rooms/";
+let ROOT = "";
+const normCode = v => String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+const roomName = c => "Comisión " + String(c).replace(/\D/g,"");
 
 /* ---------- capa de datos: Firebase o modo de prueba local ---------- */
 const params = new URLSearchParams(location.search);
@@ -219,7 +222,7 @@ function makeMock(){
       const t = read(), ks = path.split("/").filter(Boolean); let o = t;
       ks.slice(0,-1).forEach(k => { if (typeof o[k] !== "object" || o[k] === null) o[k] = {}; o = o[k]; });
       const last = ks[ks.length-1];
-      if (ks[1] === "answers" && o[last] != null) throw new Error("PERMISSION_DENIED");
+      if (ks.includes("answers") && o[last] != null) throw new Error("PERMISSION_DENIED");
       if (v === null) delete o[last]; else o[last] = JSON.parse(JSON.stringify(v));
       store.set(KEY, JSON.stringify(t)); fire();
     },
@@ -236,10 +239,11 @@ const fmt = n => (n > 0 ? "+" : "") + n;
 let D = null, state = null, loaded = false, players = {}, gameAnswers = {};
 let isHost = false, hostAuthed = false, pinErr = false;
 let pid = store.get("gpd2-pid");
+let room = normCode(params.get("c")); if (!COMISIONES.includes(room)) room = "";
 if (MOCK && params.get("yo")) pid = "p" + params.get("yo").replace(/[^a-z0-9]/gi, "");  /* modo prueba: varios alumnos en un mismo navegador */
 else if (!pid){ pid ="p" + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); store.set("gpd2-pid", pid); }
 let me = null, myAnswers = {}, writeErr = "", sending = false;
-let setupDraft = {n:6, names:DEFAULT_NAMES.slice(), dur:30, otro:true};
+let setupDraft = {n:6, names:Array(8).fill(""), dur:30, otro:true};
 let joinDraft = {name: store.get("gpd2-name") || "", team:null};
 let confirmReset = false, autoRevealFor = null, unsubGame = null, unsubMine = null, subscribedGame = null;
 
@@ -259,18 +263,30 @@ function remaining(){
 /* ---------- arranque ---------- */
 (async function init(){
   isHost = params.has("docente");
-  hostAuthed = isHost && (sessionStorage.getItem("gpd2-host") === "1");
+  if (isHost){ const r = sessionStorage.getItem("gpd2-host-room"); room = COMISIONES.includes(r) ? r : ""; hostAuthed = !!room; }
   if (!MOCK && String(firebaseConfig.databaseURL).includes("PEGAR")){
     return renderMsg("Falta configurar Firebase", "Abrí index.html y completá firebaseConfig con los datos de tu proyecto (ver LEEME.md). Para probar sin Firebase, agregá ?prueba al link.");
   }
   try { D = MOCK ? makeMock() : await makeFirebase(); }
   catch(e){ console.error(e); return renderMsg("No se pudo conectar", "Revisá la conexión a internet y la configuración de Firebase."); }
+  setInterval(tick, 250);
+  if (room) connect(); else render();
+})();
+
+/* Conectarse a la sala de una comisión: cada una tiene su propia partida, equipos y marcador. */
+function connect(){
+  ROOT = ROOT_BASE + room;
+  loaded = false;
+  renderMsg("Cargando " + roomName(room) + "…", "Conectando con el marcador en vivo.");
   const fail = setTimeout(() => { if (!loaded) renderMsg("No se pudo conectar", "Revisá la conexión a internet y recargá la página."); }, 12000);
   D.listen(ROOT + "/state", v => { clearTimeout(fail); loaded = true; state = v; onState(); render(); },
     e => { console.error(e); renderMsg("Sin permiso para leer la partida", "Revisá las reglas de la base de datos en Firebase (ver LEEME.md)."); });
   D.listen(ROOT + "/players", v => { players = v || {}; if (isHost) render(); else { me = players[pid] || null; render(); } });
-  setInterval(tick, 250);
-})();
+  if (isHost) D.get(ROOT + "/config").then(c => {
+    if (c) setupDraft = {n:c.n || setupDraft.n, dur:c.dur || setupDraft.dur, otro:c.otro !== false, names:Object.assign(Array(8).fill(""), c.names || [])};
+    render();
+  }).catch(() => {});
+}
 
 function onState(){
   const gid = state && state.gameId;
@@ -299,10 +315,11 @@ function renderMsg(title, body){
     <div class="card center"><h2>${esc(title)}</h2><p class="muted">${esc(body)}</p></div>`;
 }
 function shell(inner){
-  return `<div class="top"><div class="brand">Desafío <span>GPD2</span></div><div class="tag">${isHost ? "Pantalla del docente" : "Pantalla del alumno"}${MOCK?" · modo prueba":""}</div></div>${inner}`;
+  return `<div class="top"><div class="brand">Desafío <span>GPD2</span></div><div class="tag">${isHost ? "Pantalla del docente" : "Pantalla del alumno"}${room ? " · " + roomName(room) : ""}${MOCK?" · modo prueba":""}</div></div>${inner}`;
 }
 function render(){
   if (isHost && !hostAuthed){ appEl.innerHTML = shell(pinView()); bind(); return; }
+  if (!room){ appEl.innerHTML = shell(roomPickView()); bind(); return; }
   if (!loaded) return;
   const a = document.activeElement, focusId = a && a.id, caret = a && a.selectionStart;
   appEl.innerHTML = shell(isHost ? hostView() : playerView());
@@ -339,13 +356,17 @@ function boardHTML(qi){
 /* ----- docente ----- */
 function pinView(){
   return `<div class="card"><h2>Entrar como docente</h2>
-    <label for="pin">PIN<input id="pin" type="password" inputmode="text" autocomplete="off"></label>
-    <div class="row"><button class="btn primary" id="pinok">Entrar</button>${pinErr ? `<span class="err">PIN incorrecto.</span>` : ""}</div></div>`;
+    <label for="pin">Código de la comisión<input id="pin" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="comision1"></label>
+    <div class="row"><button class="btn primary" id="pinok">Entrar</button>${pinErr ? `<span class="err">Código incorrecto. Usá comision1, comision2, comision3 o comision4.</span>` : ""}</div></div>`;
+}
+function roomPickView(){
+  return `<div class="card"><h2>¿De qué comisión sos?</h2>
+    <div class="teampicks">${COMISIONES.map(c => `<button class="teampick" type="button" data-room="${c}" style="background:var(--accent)">${roomName(c)}</button>`).join("")}</div></div>`;
 }
 function hostView(){
   if (!state || state.status === "setup") return setupView();
   const qi = state.q, qq = Q[state.order[qi]] || Q[0], total = state.order.length, ps = playersInGame();
-  const joinUrl = location.origin + location.pathname.replace(/index\.html$/, "") + (MOCK ? "?prueba" : "");
+  const joinUrl = location.origin + location.pathname.replace(/index\.html$/, "") + "?c=" + room + (MOCK ? "&prueba" : "");
   const resetBtn = `<button class="btn small warn" id="reset">${confirmReset ? "Tocá de nuevo para confirmar" : "Nueva partida"}</button>`;
   if (state.status === "lobby"){
     return `<div class="card">
@@ -401,7 +422,7 @@ function hostView(){
 function setupView(){
   const d = setupDraft;
   return `<div class="card">
-    <h1>Armá la partida</h1>
+    <div class="spread"><h1>Armá la partida · ${roomName(room)}</h1><button class="btn small" id="switchroom">Cambiar de comisión</button></div>
     <p class="muted">${Q.length} preguntas. Cada alumno responde desde su celular y su respuesta suma o resta puntos a su equipo.</p>
     ${rulesHTML}
     <div class="grid-setup">
@@ -409,7 +430,7 @@ function setupView(){
       <label for="dur">Tiempo por pregunta<select id="dur">${[20,30,45,60].map(n => `<option value="${n}" ${n===d.dur?"selected":""}>${n} segundos</option>`).join("")}</select></label>
     </div>
     <div class="grid-setup">${Array.from({length:d.n}, (_,i) => `<div class="teamrow"><span class="swatch" style="background:${COLORS[i]}"></span>
-      <input id="tn${i}" data-tn="${i}" value="${esc(d.names[i])}" maxlength="28" aria-label="Nombre del equipo ${i+1}"></div>`).join("")}</div>
+      <input id="tn${i}" data-tn="${i}" value="${esc(d.names[i])}" placeholder="Nombre del equipo ${i+1}" maxlength="28" aria-label="Nombre del equipo ${i+1}"></div>`).join("")}</div>
     <label class="check" for="otro"><input type="checkbox" id="otro" ${d.otro?"checked":""}> Agregar la opción "Otro" para quien no tiene equipo (compite como un equipo más)</label>
     <div class="row"><button class="btn primary" id="create">Abrir sala de espera</button>${writeErr ? `<span class="err">${esc(writeErr)}</span>` : ""}</div>
   </div>`;
@@ -468,7 +489,15 @@ function playerView(){
 /* ---------- acciones ---------- */
 function bind(){
   const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener("click", fn); };
-  on("pinok", () => { if ($("#pin").value.trim() === PIN_DOCENTE){ hostAuthed = true; sessionStorage.setItem("gpd2-host","1"); render(); } else { pinErr = true; render(); } });
+  on("pinok", () => { const c = normCode($("#pin").value);
+    if (COMISIONES.includes(c)){ room = c; hostAuthed = true; pinErr = false; try { sessionStorage.setItem("gpd2-host-room", c); } catch(e){} connect(); }
+    else { pinErr = true; render(); } });
+  on("switchroom", () => { try { sessionStorage.removeItem("gpd2-host-room"); } catch(e){} location.href = location.pathname + "?docente" + (MOCK ? "&prueba" : ""); });
+  document.querySelectorAll("[data-room]").forEach(b => b.addEventListener("click", () => {
+    room = b.dataset.room;
+    try { history.replaceState(null, "", location.pathname + "?c=" + room + (MOCK ? "&prueba" : "") + (params.get("yo") ? "&yo=" + params.get("yo") : "")); } catch(e){}
+    connect();
+  }));
   const pin = $("#pin"); if (pin) pin.addEventListener("keydown", e => { if (e.key === "Enter") $("#pinok").click(); });
   const n = $("#nTeams"); if (n) n.addEventListener("change", e => { setupDraft.n = +e.target.value; render(); });
   const du = $("#dur"); if (du) du.addEventListener("change", e => { setupDraft.dur = +e.target.value; });
@@ -526,6 +555,7 @@ function createGame(){
   for (let i = order.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [order[i],order[j]] = [order[j],order[i]]; }
   const teams = Array.from({length:setupDraft.n}, (_,i) => ({id:"t"+(i+1), name:(setupDraft.names[i]||"").trim() || DEFAULT_NAMES[i], color:COLORS[i]}));
   if (setupDraft.otro) teams.push({...OTRO});
+  D.set(ROOT + "/config", {n:setupDraft.n, dur:setupDraft.dur, otro:setupDraft.otro, names:setupDraft.names.slice(0, setupDraft.n).map(x => (x||"").trim())}).catch(e => console.error(e));
   writeState({gameId:"g"+Date.now().toString(36), status:"lobby", q:0, qk:"", startedAt:0, duration:setupDraft.dur, teams, order, results:{}, counts:{}});
 }
 async function reveal(){
