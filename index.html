@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Desafío GPD2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0e1726; --panel:#16223a; --panel-2:#1d2c49; --line:#2b3d5f;
+  --ink:#f1f4fa; --muted:#9fb0cc; --accent:#ffcb47; --ok:#4fd18b; --bad:#ff6b6b;
+  --f-display:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;
+  --f-body:"Public Sans",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;min-height:100vh;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(48px + env(safe-area-inset-bottom,0px))}
+#app{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px}
+.brand{font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.01em}
+.brand span{color:var(--accent)}
+.tag{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,4.5vw,46px);font-weight:800;line-height:1.1}
+h2{font-size:clamp(22px,3vw,30px);font-weight:800;line-height:1.15}
+h3{font-size:18px;font-weight:600}
+p{margin:0}
+.muted{color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.btn{font:inherit;font-weight:700;font-size:16px;border-radius:10px;padding:12px 18px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn:focus-visible,.opt:focus-visible,.teampick:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1a1405}
+.btn.small{font-size:13px;padding:7px 11px;border-radius:8px}
+.btn.warn{border-color:var(--bad);color:var(--bad);background:transparent}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+label{font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+label.check{flex-direction:row;align-items:center;gap:8px;color:var(--ink)}
+input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.grid-setup{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.teamrow{display:flex;gap:10px;align-items:center}
+.swatch{width:14px;height:14px;border-radius:50%;flex:none}
+.teamrow input{flex:1}
+.rules{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--f-mono);font-size:14px}
+.rules .p{color:var(--ok)} .rules .n{color:var(--bad)}
+.qmeta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.qnum{font-family:var(--f-mono);font-size:14px;color:var(--accent)}
+.topic{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.qtext{font-family:var(--f-display);font-weight:600;font-size:clamp(20px,2.8vw,32px);line-height:1.25;text-wrap:pretty}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.opt{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;font:inherit;font-size:clamp(15px,1.7vw,19px);font-weight:500;color:var(--ink);
+  background:var(--panel-2);border:2px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;min-height:76px}
+.opt .l{font-family:var(--f-display);font-weight:800;font-size:20px;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--bg);border:1px solid var(--line)}
+.opt .cnt{font-family:var(--f-mono);font-weight:600;font-size:18px}
+button.opt:hover:not(:disabled){border-color:var(--muted)}
+.opt.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--panel-2))}
+.opt.sel .l{background:var(--accent);color:#1a1405;border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--panel-2))}
+.opt.right .l{background:var(--ok);color:#06210f;border-color:var(--ok)}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--panel-2))}
+.opt.dim{opacity:.45}
+.opt:disabled{cursor:default}
+.timer{font-family:var(--f-mono);font-weight:600;font-size:28px;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:10px}
+.tbar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--accent);width:100%;transition:width .25s linear}
+.tbar.low i{background:var(--bad)}
+.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.team{background:var(--panel-2);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.team .name{font-weight:700;overflow-wrap:anywhere}
+.team .st{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.team .big2{font-family:var(--f-mono);font-weight:600;font-size:22px;font-variant-numeric:tabular-nums}
+.board{display:flex;flex-direction:column;gap:8px}
+.brow{display:grid;grid-template-columns:28px minmax(0,1fr) 92px;gap:10px;align-items:center}
+.pos{font-family:var(--f-mono);color:var(--muted);text-align:right}
+.bwrap{background:var(--panel-2);border-radius:8px;overflow:hidden;position:relative;height:42px}
+.bfill{position:absolute;inset:0 auto 0 0;opacity:.9;transition:width .6s ease}
+.blabel{position:relative;z-index:1;display:flex;align-items:center;gap:8px;height:100%;padding:0 12px;font-weight:700;color:#0e1726;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blabel small{font-weight:600;opacity:.75}
+.pts{font-family:var(--f-mono);font-weight:600;font-size:18px;text-align:right;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;line-height:1.2}
+.delta{font-size:13px}
+.delta.p{color:var(--ok)} .delta.n{color:var(--bad)} .delta.z{color:var(--muted)}
+.expl{border-left:4px solid var(--ok);padding:6px 0 6px 14px;font-size:clamp(15px,1.6vw,18px)}
+.stars{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.star{display:flex;justify-content:space-between;gap:10px;background:var(--panel-2);border-radius:8px;padding:8px 12px;border-left:5px solid var(--c)}
+.star b{overflow-wrap:anywhere}
+.star span{font-family:var(--f-mono);color:var(--muted);white-space:nowrap}
+.teampicks{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.teampick{font:inherit;font-weight:700;font-size:17px;color:#0e1726;border:3px solid transparent;border-radius:12px;padding:16px 12px;cursor:pointer;overflow-wrap:anywhere}
+.teampick.on{border-color:var(--ink);box-shadow:0 0 0 3px var(--bg) inset}
+.badge{display:inline-flex;align-items:center;gap:8px;font-weight:700;border-radius:999px;padding:6px 14px;background:var(--panel-2);border:1px solid var(--line);min-width:0;overflow-wrap:anywhere}
+.big{font-family:var(--f-display);font-weight:800;font-size:clamp(40px,10vw,72px);line-height:1}
+.center{text-align:center;align-items:center}
+.note{font-size:14px;color:var(--muted)}
+.err{color:var(--bad);font-weight:600}
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.pod{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:120px}
+.pod .blk{width:120px;border-radius:10px 10px 0 0;display:grid;place-items:start center;padding-top:10px;font-family:var(--f-display);font-weight:800;font-size:30px;color:#0e1726}
+.pod .nm{font-weight:700;text-align:center;overflow-wrap:anywhere;max-width:140px}
+.joinurl{font-family:var(--f-mono);font-size:clamp(18px,2.5vw,26px);color:var(--accent);overflow-wrap:anywhere}
+.joinbox{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.qr{background:#fff;border-radius:12px;padding:10px;width:min(300px,70vw);flex:none}
+.qr svg{display:block;width:100%;height:auto}
+.joininfo{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1 1 240px}
+@media (max-width:640px){
+  .opts{grid-template-columns:minmax(0,1fr)}
+  .opt{min-height:60px;padding:12px}
+  .card{padding:16px}
+  .timer{font-size:22px}
+  .brow{grid-template-columns:22px minmax(0,1fr) 78px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top"><div class="brand">Desafío <span>GPD2</span></div><div class="tag">Cargando…</div></div>
+  <div class="card center"><h2>Cargando…</h2></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script type="module">
+/* =====================================================================
+   CONFIGURACIÓN — completá estos datos (ver LEEME.md)
+   ===================================================================== */
+const firebaseConfig = {
+  databaseURL: "https://juego-gpd2-default-rtdb.firebaseio.com",
+  projectId: "juego-gpd2"
+};
+const PIN_DOCENTE = "gpd2";     // PIN para entrar como docente (link + ?docente)
+const PTS_OK = 10;              // puntos por respuesta correcta
+const PTS_BAD = -5;             // puntos por respuesta incorrecta
+/* ===================================================================== */
+
+const Q = [
+ {t:"Visión y estrategia", q:"Un equipo escribe en su pizarra: \"Que cualquier productor rural pueda vender su cosecha online, sin intermediarios\". ¿Qué es esta frase?",
+  o:["Un KPI operativo del equipo","Un criterio de aceptación","La visión del producto","Un objetivo táctico del trimestre"], a:2,
+  e:"Describe el futuro deseado y el impacto que busca el producto. La estrategia es el camino para llegar ahí."},
+ {t:"Product Vision Board", q:"¿Qué resume un Product Vision Board?",
+  o:["Público objetivo, necesidades, propuesta de valor y objetivos de negocio","Tareas del Sprint, responsables y fechas de entrega","Bugs abiertos, deuda técnica y prioridades de QA","Presupuesto de marketing por canal"], a:0,
+  e:"Sintetiza en una sola herramienta para quién es el producto, qué problema resuelve, qué lo hace valioso y qué busca el negocio."},
+ {t:"Roadmap", q:"Un inversor pide \"el roadmap\" del producto. ¿Qué le vas a mostrar?",
+  o:["Un contrato con fechas fijas que no se puede modificar","Las iniciativas y prioridades futuras, que se ajustan con nuevos aprendizajes","La lista de tareas técnicas del próximo Sprint","Un informe con las métricas del último trimestre"], a:1,
+  e:"El roadmap comunica la dirección y alinea expectativas. No es rígido: cambia con el mercado, los usuarios y la estrategia."},
+ {t:"Tipos de métricas", q:"El CEO quiere un indicador para saber si el producto cumple sus objetivos de largo plazo. ¿Cuál es una métrica estratégica?",
+  o:["Velocidad del equipo por Sprint","Bugs cerrados por semana","Tiempo promedio de despliegue","Retención de clientes a 6 meses"], a:3,
+  e:"La retención mide resultados de negocio a largo plazo. Las otras tres miden la ejecución diaria: son métricas operativas."},
+ {t:"Growth Hacking", q:"Una startup sin presupuesto prueba tres versiones del registro por semana y se queda con la que activa más usuarios. ¿Qué enfoque está aplicando?",
+  o:["Growth Hacking","Gestión en cascada (Waterfall)","Definition of Done","Gestión presupuestaria"], a:0,
+  e:"Growth Hacking es experimentación rápida guiada por datos para encontrar palancas de crecimiento con pocos recursos."},
+ {t:"Modelo AARRR", q:"Una app lanza \"Invitá a un amigo y ganá $2.000 de descuento\". ¿Qué etapa del AARRR busca mejorar?",
+  o:["Activación","Retención","Referencia","Ingresos"], a:2,
+  e:"Referencia (Referral): usuarios actuales que traen usuarios nuevos."},
+ {t:"Gestión del cambio", q:"El equipo de ventas se resiste a usar el nuevo CRM que lanzó producto. ¿Cuál es la mejor primera acción?",
+  o:["Obligarlos a usarlo desde mañana","Involucrarlos: comunicar beneficios, capacitar y hacer un piloto","Mantener el sistema viejo en paralelo sin fecha de cierre","Esperar a que se adapten solos"], a:1,
+  e:"Comunicar, involucrar temprano, capacitar y acompañar la adopción reduce la resistencia."},
+ {t:"Producto y Legales", q:"Una app quiere usar datos de sus usuarios para personalizar recomendaciones con IA. ¿Cuándo conviene sumar a Legales?",
+  o:["Después del lanzamiento, si aparece un reclamo","Sólo si el producto se vende en otros países","Nunca, es tarea del equipo técnico","Desde el diseño de la funcionalidad, antes de desarrollarla"], a:3,
+  e:"Incumplir normas (como protección de datos) puede traer sanciones, pérdida de confianza e incluso impedir vender el producto."},
+ {t:"Producto y Marketing", q:"Marketing quiere lanzar una campaña masiva, pero el 60% de los usuarios abandona en el registro. ¿Qué hacés?",
+  o:["Mejorar primero la activación y después escalar la adquisición","Lanzar igual: más usuarios compensan el abandono","Bajar el precio del producto","Pausar todo el trabajo de Marketing por un año"], a:0,
+  e:"Atraer miles de usuarios a un producto que los pierde en el primer paso desperdicia presupuesto. Producto y Marketing se coordinan."},
+ {t:"Ciclo de estrategia", q:"En el ciclo Estrategia → Validación → Roadmap → Backlog → Desarrollo → KPIs, ¿qué pasa con una iniciativa justo después de validarla con usuarios?",
+  o:["Se mide con KPIs","Se cierra el Sprint","Se redefine la visión","Ingresa al roadmap"], a:3,
+  e:"Lo validado entra al roadmap, después se baja al backlog, se desarrolla y se mide con KPIs."},
+ {t:"Product Hypothesis Canvas", q:"¿Qué ordena un Product Hypothesis Canvas?",
+  o:["El presupuesto anual del área de producto","Problema, usuario, solución, supuestos y resultado esperado para validar","El organigrama del equipo de desarrollo","Las historias de usuario listas para el Sprint"], a:1,
+  e:"Estructura una hipótesis para poder validarla con evidencia antes de invertir."},
+ {t:"Presupuesto y priorización", q:"Hay presupuesto para una sola iniciativa este trimestre. ¿Cuál priorizás?",
+  o:["La que pidió el cliente más grande","La más fácil de desarrollar","La de mayor impacto en los objetivos estratégicos respecto de su costo","La más innovadora del mercado"], a:2,
+  e:"Con recursos limitados, el PM asigna inversión donde más valor genera para el usuario y el negocio."}
+];
+const L = ["A","B","C","D"];
+const COLORS = ["#ff8a70","#4cc9e0","#ffcb47","#a594ff","#5fd38d","#ff9fd0","#7fa8ff","#f4a259"];
+const OTRO = {id:"otro", name:"Otro", color:"#c9d3e3"};
+const DEFAULT_NAMES = ["Equipo 1","Equipo 2","Equipo 3","Equipo 4","Equipo 5","Equipo 6","Equipo 7","Equipo 8"];
+const ROOT = "gpd2";
+
+/* ---------- capa de datos: Firebase o modo de prueba local ---------- */
+const params = new URLSearchParams(location.search);
+const MOCK = params.has("prueba");
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+};
+
+async function makeFirebase(){
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const fdb = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+  const app = initializeApp(firebaseConfig);
+  const d = fdb.getDatabase(app);
+  let offset = 0;
+  fdb.onValue(fdb.ref(d, ".info/serverTimeOffset"), s => { offset = s.val() || 0; });
+  return {
+    listen(path, cb, onErr){ return fdb.onValue(fdb.ref(d, path), s => cb(s.val()), onErr); },
+    set(path, v){ return fdb.set(fdb.ref(d, path), v); },
+    async get(path){ return (await fdb.get(fdb.ref(d, path))).val(); },
+    now(){ return Date.now() + offset; }
+  };
+}
+function makeMock(){
+  /* Base local compartida entre pestañas del mismo navegador, para probar sin Firebase. */
+  const KEY = "gpd2-mock-db", subs = [];
+  const read = () => { try { return JSON.parse(store.get(KEY) || "{}"); } catch(e){ return {}; } };
+  const at = (obj, path) => path.split("/").filter(Boolean).reduce((o,k) => o == null ? undefined : o[k], obj);
+  const fire = () => { const t = read(); subs.forEach(s => s.cb(at(t, s.path) ?? null)); };
+  addEventListener("storage", e => { if (e.key === KEY) fire(); });
+  return {
+    listen(path, cb){ const s = {path, cb}; subs.push(s); setTimeout(() => cb(at(read(), path) ?? null)); return () => subs.splice(subs.indexOf(s),1); },
+    async set(path, v){
+      const t = read(), ks = path.split("/").filter(Boolean); let o = t;
+      ks.slice(0,-1).forEach(k => { if (typeof o[k] !== "object" || o[k] === null) o[k] = {}; o = o[k]; });
+      const last = ks[ks.length-1];
+      if (ks[1] === "answers" && o[last] != null) throw new Error("PERMISSION_DENIED");
+      if (v === null) delete o[last]; else o[last] = JSON.parse(JSON.stringify(v));
+      store.set(KEY, JSON.stringify(t)); fire();
+    },
+    async get(path){ return at(read(), path) ?? null; },
+    now(){ return Date.now(); }
+  };
+}
+
+/* ---------- estado ---------- */
+const $ = s => document.querySelector(s);
+const appEl = document.getElementById("app");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => (n > 0 ? "+" : "") + n;
+let D = null, state = null, loaded = false, players = {}, gameAnswers = {};
+let isHost = false, hostAuthed = false, pinErr = false;
+let pid = store.get("gpd2-pid");
+if (MOCK && params.get("yo")) pid = "p" + params.get("yo").replace(/[^a-z0-9]/gi, "");  /* modo prueba: varios alumnos en un mismo navegador */
+else if (!pid){ pid ="p" + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); store.set("gpd2-pid", pid); }
+let me = null, myAnswers = {}, writeErr = "", sending = false;
+let setupDraft = {n:6, names:DEFAULT_NAMES.slice(), dur:30, otro:true};
+let joinDraft = {name: store.get("gpd2-name") || "", team:null};
+let confirmReset = false, autoRevealFor = null, unsubGame = null, unsubMine = null, subscribedGame = null;
+
+const teamById = id => (state?.teams||[]).find(t => t.id === id);
+const playersInGame = () => Object.entries(players).filter(([,p]) => p && p.game === state?.gameId).map(([id,p]) => ({id, ...p}));
+const qAnswers = qi => (gameAnswers && gameAnswers["q"+qi]) || {};
+
+function teamPts(tid){
+  let p = 0; Object.values(state.results||{}).forEach(res => { const r = res[tid]; if (r) p += (r.ok||0)*PTS_OK + (r.bad||0)*PTS_BAD; }); return p;
+}
+function ranking(){ return state.teams.map(t => ({...t, pts:teamPts(t.id)})).sort((a,b) => b.pts - a.pts); }
+function remaining(){
+  if (!state || state.status !== "question") return 0;
+  return Math.max(0, Math.min(state.duration, (state.startedAt + state.duration*1000 - D.now())/1000));
+}
+
+/* ---------- arranque ---------- */
+(async function init(){
+  isHost = params.has("docente");
+  hostAuthed = isHost && (sessionStorage.getItem("gpd2-host") === "1");
+  if (!MOCK && String(firebaseConfig.databaseURL).includes("PEGAR")){
+    return renderMsg("Falta configurar Firebase", "Abrí index.html y completá firebaseConfig con los datos de tu proyecto (ver LEEME.md). Para probar sin Firebase, agregá ?prueba al link.");
+  }
+  try { D = MOCK ? makeMock() : await makeFirebase(); }
+  catch(e){ console.error(e); return renderMsg("No se pudo conectar", "Revisá la conexión a internet y la configuración de Firebase."); }
+  const fail = setTimeout(() => { if (!loaded) renderMsg("No se pudo conectar", "Revisá la conexión a internet y recargá la página."); }, 12000);
+  D.listen(ROOT + "/state", v => { clearTimeout(fail); loaded = true; state = v; onState(); render(); },
+    e => { console.error(e); renderMsg("Sin permiso para leer la partida", "Revisá las reglas de la base de datos en Firebase (ver LEEME.md)."); });
+  D.listen(ROOT + "/players", v => { players = v || {}; if (isHost) render(); else { me = players[pid] || null; render(); } });
+  setInterval(tick, 250);
+})();
+
+function onState(){
+  const gid = state && state.gameId;
+  if (gid === subscribedGame) return;
+  subscribedGame = gid;
+  if (unsubGame) { unsubGame(); unsubGame = null; }
+  if (unsubMine) { unsubMine(); unsubMine = null; }
+  gameAnswers = {}; myAnswers = {};
+  if (!gid) return;
+  unsubGame = D.listen(`${ROOT}/answers/${gid}`, v => { gameAnswers = v || {}; render(); });
+}
+/* Respuesta propia: la que se acaba de enviar o la guardada en la base (sobrevive a recargar la página). */
+function pickFor(qi){
+  const k = state.gameId + ":" + qi;
+  if (myAnswers[k] != null) return myAnswers[k];
+  const a = qAnswers(qi)[pid];
+  return a && a.o != null ? a.o : undefined;
+}
+
+function qrSvg(text){
+  try { const q = qrcode(0, "M"); q.addData(text); q.make(); return q.createSvgTag({cellSize:8, margin:2, scalable:true}); }
+  catch(e){ return ""; }
+}
+function renderMsg(title, body){
+  appEl.innerHTML = `<div class="top"><div class="brand">Desafío <span>GPD2</span></div></div>
+    <div class="card center"><h2>${esc(title)}</h2><p class="muted">${esc(body)}</p></div>`;
+}
+function shell(inner){
+  return `<div class="top"><div class="brand">Desafío <span>GPD2</span></div><div class="tag">${isHost ? "Pantalla del docente" : "Pantalla del alumno"}${MOCK?" · modo prueba":""}</div></div>${inner}`;
+}
+function render(){
+  if (isHost && !hostAuthed){ appEl.innerHTML = shell(pinView()); bind(); return; }
+  if (!loaded) return;
+  const a = document.activeElement, focusId = a && a.id, caret = a && a.selectionStart;
+  appEl.innerHTML = shell(isHost ? hostView() : playerView());
+  bind();
+  if (focusId){ const el = document.getElementById(focusId); if (el){ el.focus(); if (caret != null && el.setSelectionRange) try{ el.setSelectionRange(caret, caret); }catch(e){} } }
+  tick();
+}
+function timerBlock(){
+  return `<div class="timer"><span id="tnum">${Math.ceil(remaining())}</span><span class="muted" style="font-size:14px">segundos</span></div>
+    <div class="tbar" id="tbar"><i id="tfill"></i></div>`;
+}
+function tick(){
+  if (!state || state.status !== "question" || !D) return;
+  const r = remaining(), n = $("#tnum"), f = $("#tfill"), b = $("#tbar");
+  if (n) n.textContent = Math.ceil(r);
+  if (f) f.style.width = (r / state.duration * 100) + "%";
+  if (b) b.classList.toggle("low", r <= 5);
+  if (isHost && hostAuthed && r <= 0 && autoRevealFor !== state.gameId + state.q){ autoRevealFor = state.gameId + state.q; reveal(); }
+  if (!isHost && r <= 0) document.querySelectorAll("button.opt").forEach(x => x.disabled = true);
+}
+const rulesHTML = `<div class="rules"><span class="p">Correcta ${fmt(PTS_OK)}</span><span class="n">Incorrecta ${PTS_BAD}</span><span class="muted">Sin responder 0</span></div>`;
+
+function boardHTML(qi){
+  const r = ranking(), max = Math.max(PTS_OK, ...r.map(t => t.pts));
+  const res = qi != null ? (state.results||{})["q"+qi] || {} : null;
+  return `<div class="board">${r.map((t,i) => {
+    const rr = res && res[t.id], d = rr ? (rr.ok||0)*PTS_OK + (rr.bad||0)*PTS_BAD : null;
+    return `<div class="brow"><span class="pos">${i+1}</span>
+      <div class="bwrap"><div class="bfill" style="width:${Math.max(28, Math.max(0,t.pts)/max*100)}%;background:${t.color}"></div>
+        <div class="blabel">${esc(t.name)}${rr ? `<small>${rr.ok||0} ✓ · ${rr.bad||0} ✗</small>` : ""}</div></div>
+      <div class="pts">${t.pts}${d != null ? `<span class="delta ${d>0?"p":d<0?"n":"z"}">${fmt(d)}</span>` : ""}</div></div>`; }).join("")}</div>`;
+}
+
+/* ----- docente ----- */
+function pinView(){
+  return `<div class="card"><h2>Entrar como docente</h2>
+    <label for="pin">PIN<input id="pin" type="password" inputmode="text" autocomplete="off"></label>
+    <div class="row"><button class="btn primary" id="pinok">Entrar</button>${pinErr ? `<span class="err">PIN incorrecto.</span>` : ""}</div></div>`;
+}
+function hostView(){
+  if (!state || state.status === "setup") return setupView();
+  const qi = state.q, qq = Q[state.order[qi]] || Q[0], total = state.order.length, ps = playersInGame();
+  const joinUrl = location.origin + location.pathname.replace(/index\.html$/, "") + (MOCK ? "?prueba" : "");
+  const resetBtn = `<button class="btn small warn" id="reset">${confirmReset ? "Tocá de nuevo para confirmar" : "Nueva partida"}</button>`;
+  if (state.status === "lobby"){
+    return `<div class="card">
+      <div class="spread"><h1>Sala de espera</h1>${resetBtn}</div>
+      <div class="joinbox"><div class="qr" aria-label="Código QR para entrar al juego">${qrSvg(joinUrl)}</div>
+        <div class="joininfo"><p class="muted">Escaneá el código con la cámara del celular o entrá a</p><div class="joinurl">${esc(joinUrl)}</div></div></div>
+      <p class="muted">Escribí tu nombre y elegí tu equipo. Son ${total} preguntas de ${state.duration} segundos; cada respuesta suma o resta puntos a tu equipo.</p>
+      ${rulesHTML}
+      <h3>${ps.length} ${ps.length===1?"alumno conectado":"alumnos conectados"}</h3>
+      <div class="teams">${state.teams.map(t => { const m = ps.filter(p => p.team === t.id);
+        return `<div class="team" style="--c:${t.color}"><span class="name">${esc(t.name)}</span><span class="big2">${m.length}</span>
+        <span class="st">${m.length ? esc(m.map(p => p.name).slice(0,6).join(", ")) + (m.length>6?"…":"") : "Nadie todavía"}</span></div>`; }).join("")}</div>
+      <div class="row"><button class="btn primary" id="start">Empezar el juego</button></div></div>`;
+  }
+  if (state.status === "question"){
+    const ans = qAnswers(qi), n = Object.keys(ans).length;
+    return `<div class="card">
+      <div class="qmeta"><span class="qnum">Pregunta ${qi+1} de ${total}</span><span class="topic">${esc(qq.t)}</span></div>
+      ${timerBlock()}
+      <div class="qtext">${esc(qq.q)}</div>
+      <div class="opts">${qq.o.map((o,j) => `<div class="opt"><span class="l">${L[j]}</span><span>${esc(o)}</span><span></span></div>`).join("")}</div>
+    </div>
+    <div class="card">
+      <div class="spread"><h3>Respondieron ${n} de ${ps.length} alumnos</h3><button class="btn primary" id="reveal">Revelar respuesta</button></div>
+      <div class="teams">${state.teams.map(t => { const m = ps.filter(p => p.team === t.id), d = m.filter(p => ans[p.id]).length;
+        return `<div class="team" style="--c:${t.color}"><span class="name">${esc(t.name)}</span><span class="st">${d} de ${m.length} respondieron</span></div>`; }).join("")}</div>
+    </div>`;
+  }
+  if (state.status === "reveal"){
+    const isLast = qi >= total - 1, counts = (state.counts && state.counts["q"+qi]) || [0,0,0,0];
+    return `<div class="card">
+      <div class="qmeta"><span class="qnum">Pregunta ${qi+1} de ${total}</span><span class="topic">${esc(qq.t)}</span></div>
+      <div class="qtext">${esc(qq.q)}</div>
+      <div class="opts">${qq.o.map((o,j) => `<div class="opt ${j===qq.a?"right":(counts[j]?"wrong":"dim")}"><span class="l">${L[j]}</span><span>${esc(o)}</span><span class="cnt">${counts[j]||0}</span></div>`).join("")}</div>
+      <p class="expl">${esc(qq.e)}</p>
+    </div>
+    <div class="card"><div class="spread"><h2>Puntos por equipo</h2><button class="btn primary" id="next">${isLast ? "Ver ranking final" : "Siguiente pregunta"}</button></div>${rulesHTML}${boardHTML(qi)}</div>`;
+  }
+  if (state.status === "final"){
+    const r = ranking(), top = r.slice(0,3), h = [150,110,80], order = [1,0,2].filter(i => top[i]);
+    const okBy = {};
+    Object.entries(gameAnswers||{}).forEach(([qk, byP]) => { const qq2 = Q[state.order[+qk.slice(1)]];
+      Object.entries(byP||{}).forEach(([p, a]) => { if (a && a.o === qq2.a) okBy[p] = (okBy[p]||0) + 1; }); });
+    const stars = ps.map(p => ({...p, ok:okBy[p.id]||0, t:teamById(p.team)})).filter(s => s.t).sort((a,b) => b.ok - a.ok).slice(0,6);
+    return `<div class="card center"><span class="tag">Fin del juego</span><h1>¡Ganó ${esc(r[0].name)}!</h1>
+      <div class="podium">${order.map(i => `<div class="pod"><span class="nm">${esc(top[i].name)}</span><span class="muted">${top[i].pts} pts</span>
+        <div class="blk" style="background:${top[i].color};height:${h[i]}px">${i+1}</div></div>`).join("")}</div></div>
+      <div class="card"><div class="spread"><h2>Ranking de equipos</h2>${resetBtn}</div>${boardHTML(null)}</div>
+      ${stars.length ? `<div class="card"><h3>Más respuestas correctas</h3><div class="stars">${stars.map(s => `<div class="star" style="--c:${s.t.color}"><b>${esc(s.name)}</b><span>${s.ok} de ${total}</span></div>`).join("")}</div></div>` : ""}`;
+  }
+  return setupView();
+}
+function setupView(){
+  const d = setupDraft;
+  return `<div class="card">
+    <h1>Armá la partida</h1>
+    <p class="muted">${Q.length} preguntas. Cada alumno responde desde su celular y su respuesta suma o resta puntos a su equipo.</p>
+    ${rulesHTML}
+    <div class="grid-setup">
+      <label for="nTeams">Cantidad de equipos<select id="nTeams">${[2,3,4,5,6,7,8].map(n => `<option value="${n}" ${n===d.n?"selected":""}>${n} equipos</option>`).join("")}</select></label>
+      <label for="dur">Tiempo por pregunta<select id="dur">${[20,30,45,60].map(n => `<option value="${n}" ${n===d.dur?"selected":""}>${n} segundos</option>`).join("")}</select></label>
+    </div>
+    <div class="grid-setup">${Array.from({length:d.n}, (_,i) => `<div class="teamrow"><span class="swatch" style="background:${COLORS[i]}"></span>
+      <input id="tn${i}" data-tn="${i}" value="${esc(d.names[i])}" maxlength="28" aria-label="Nombre del equipo ${i+1}"></div>`).join("")}</div>
+    <label class="check" for="otro"><input type="checkbox" id="otro" ${d.otro?"checked":""}> Agregar la opción "Otro" para quien no tiene equipo (compite como un equipo más)</label>
+    <div class="row"><button class="btn primary" id="create">Abrir sala de espera</button>${writeErr ? `<span class="err">${esc(writeErr)}</span>` : ""}</div>
+  </div>`;
+}
+
+/* ----- alumno ----- */
+function playerView(){
+  if (!state || state.status === "setup") return `<div class="card center"><h2>Todavía no hay partida</h2><p class="muted">Esperá a que el docente abra la sala. Esta pantalla se actualiza sola.</p></div>`;
+  const joined = me && me.game === state.gameId ? teamById(me.team) : null;
+  const err = writeErr ? `<p class="err">${esc(writeErr)}</p>` : "";
+  if (!joined){
+    if (state.status === "final") return `<div class="card center"><h2>La partida terminó</h2><p class="muted">Esperá a que el docente abra una nueva.</p></div>`;
+    const ready = joinDraft.name.trim().length >= 2 && joinDraft.team;
+    return `<div class="card"><h2>Sumate al juego</h2>
+      <label for="pname">Tu nombre y apellido<input id="pname" maxlength="40" autocomplete="name" value="${esc(joinDraft.name)}" placeholder="Ej.: Sofía Pérez"></label>
+      <h3>Elegí tu equipo</h3>
+      <div class="teampicks">${state.teams.map(t => `<button class="teampick ${joinDraft.team===t.id?"on":""}" type="button" data-team="${t.id}" style="background:${t.color}" aria-pressed="${joinDraft.team===t.id}">${esc(t.name)}</button>`).join("")}</div>
+      <button class="btn primary" id="join" ${ready && !sending?"":"disabled"}>Entrar</button>
+      ${state.status !== "lobby" ? `<p class="note">El juego ya empezó: vas a poder responder desde la pregunta actual.</p>` : ""}${err}</div>`;
+  }
+  const rk = ranking(), mine = rk.find(t => t.id === joined.id), pos = rk.indexOf(mine) + 1;
+  const badge = `<div class="spread"><span class="badge"><span class="swatch" style="background:${joined.color}"></span>${esc(me.name)} · ${esc(joined.name)}</span><span class="pts">${mine.pts} pts · ${pos}º</span></div>`;
+  const qi = state.q, qq = Q[state.order[qi]] || Q[0], total = state.order.length, myPick = pickFor(qi);
+  if (state.status === "lobby"){
+    return `<div class="card center">${badge}<h2>¡Listo, ${esc(me.name.split(" ")[0])}!</h2><p class="muted">Esperá a que el docente largue la primera pregunta.</p>
+      ${rulesHTML}<button class="btn small" id="leave">Cambiar nombre o equipo</button>${err}</div>`;
+  }
+  if (state.status === "question"){
+    const closed = remaining() <= 0 || myPick != null || sending;
+    return `<div class="card">${badge}
+      <div class="qmeta"><span class="qnum">Pregunta ${qi+1} de ${total}</span><span class="topic">${esc(qq.t)}</span></div>
+      ${timerBlock()}
+      <div class="qtext">${esc(qq.q)}</div>
+      <div class="opts">${qq.o.map((o,j) => `<button type="button" class="opt ${myPick===j?"sel":""}" data-pick="${j}" ${closed?"disabled":""}><span class="l">${L[j]}</span><span>${esc(o)}</span><span></span></button>`).join("")}</div>
+      <p class="note">${myPick!=null ? `Respuesta enviada: <b>${L[myPick]}</b>. Esperá a que el docente la revele.` : "Elegí una sola opción: si te equivocás tu equipo pierde puntos; si no respondés, no suma ni resta."}</p>${err}</div>`;
+  }
+  if (state.status === "reveal"){
+    const ok = myPick === qq.a, rr = ((state.results||{})["q"+qi]||{})[joined.id], d = rr ? (rr.ok||0)*PTS_OK + (rr.bad||0)*PTS_BAD : 0;
+    return `<div class="card center">${badge}
+      <div class="big" style="color:${myPick==null?"var(--muted)":ok?"var(--ok)":"var(--bad)"}">${myPick==null ? "0" : ok ? "✓ " + fmt(PTS_OK) : "✗ " + PTS_BAD}</div>
+      <h2>${myPick == null ? "No respondiste a tiempo" : ok ? "¡Correcto!" : "Incorrecto"}</h2>
+      <p>La respuesta correcta es la <b>${L[qq.a]}</b>: ${esc(qq.o[qq.a])}</p>
+      <p class="muted">${esc(qq.e)}</p>
+      ${rr ? `<p>Tu equipo en esta pregunta: <b>${rr.ok||0} ✓ · ${rr.bad||0} ✗ = ${fmt(d)} pts</b></p>` : ""}</div>`;
+  }
+  if (state.status === "final"){
+    const myOk = state.order.filter((qIdx, i) => pickFor(i) === Q[qIdx].a).length;
+    return `<div class="card center">${badge}<span class="tag">Fin del juego</span>
+      <div class="big">${pos}º</div><h2>${pos===1 ? "¡Tu equipo ganó!" : "Tu equipo terminó en el puesto " + pos}</h2>
+      <p class="muted">Acertaste ${myOk} de ${total} preguntas.</p></div>
+      <div class="card"><h3>Ranking de equipos</h3>${boardHTML(null)}</div>`;
+  }
+  return "";
+}
+
+/* ---------- acciones ---------- */
+function bind(){
+  const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener("click", fn); };
+  on("pinok", () => { if ($("#pin").value.trim() === PIN_DOCENTE){ hostAuthed = true; sessionStorage.setItem("gpd2-host","1"); render(); } else { pinErr = true; render(); } });
+  const pin = $("#pin"); if (pin) pin.addEventListener("keydown", e => { if (e.key === "Enter") $("#pinok").click(); });
+  const n = $("#nTeams"); if (n) n.addEventListener("change", e => { setupDraft.n = +e.target.value; render(); });
+  const du = $("#dur"); if (du) du.addEventListener("change", e => { setupDraft.dur = +e.target.value; });
+  const ot = $("#otro"); if (ot) ot.addEventListener("change", e => { setupDraft.otro = e.target.checked; });
+  document.querySelectorAll("[data-tn]").forEach(inp => inp.addEventListener("input", e => { setupDraft.names[+e.target.dataset.tn] = e.target.value; }));
+  on("create", createGame);
+  on("start", () => writeState({...state, status:"question", q:0, qk:"q0", startedAt:D.now()}));
+  on("reveal", reveal);
+  on("next", () => {
+    const last = state.q >= state.order.length - 1;
+    writeState(last ? {...state, status:"final", qk:""} : {...state, status:"question", q:state.q+1, qk:"q"+(state.q+1), startedAt:D.now()});
+  });
+  on("reset", () => {
+    if (!confirmReset){ confirmReset = true; render(); setTimeout(() => { confirmReset = false; render(); }, 4000); return; }
+    confirmReset = false; writeState({...state, status:"setup", qk:""});
+  });
+  const pn = $("#pname"); if (pn) pn.addEventListener("input", e => {
+    joinDraft.name = e.target.value; const j = $("#join"); if (j) j.disabled = !(joinDraft.name.trim().length >= 2 && joinDraft.team);
+  });
+  document.querySelectorAll("[data-team]").forEach(b => b.addEventListener("click", () => { joinDraft.team = b.dataset.team; render(); }));
+  on("join", async () => {
+    const name = joinDraft.name.trim().slice(0,40);
+    if (name.length < 2 || !joinDraft.team) return;
+    store.set("gpd2-name", name);
+    const doc = {name, team:joinDraft.team, game:state.gameId};
+    sending = true; writeErr = ""; render();
+    try { await D.set(`${ROOT}/players/${pid}`, doc); me = doc; }
+    catch(e){ console.error(e); writeErr = "No se pudo entrar. Revisá la conexión y probá de nuevo."; }
+    sending = false; render();
+  });
+  on("leave", async () => { joinDraft.team = me.team; try { await D.set(`${ROOT}/players/${pid}`, {...me, game:""}); } catch(e){} });
+  document.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", async () => {
+    const qi = state.q, k = state.gameId + ":" + qi;
+    if (remaining() <= 0 || state.status !== "question" || pickFor(qi) != null || sending) return;
+    const o = +b.dataset.pick;
+    myAnswers[k] = o; sending = true; writeErr = ""; render();
+    try { await D.set(`${ROOT}/answers/${state.gameId}/q${qi}/${pid}`, {o, team:me.team, at:D.now()}); }
+    catch(e){
+      console.error(e);
+      const saved = await D.get(`${ROOT}/answers/${state.gameId}/q${qi}/${pid}`).catch(() => null);
+      if (saved && saved.o != null) myAnswers[k] = saved.o;
+      else { delete myAnswers[k]; writeErr = state.status === "question" ? "No se pudo enviar. Probá de nuevo." : "Se terminó el tiempo para esta pregunta."; }
+    }
+    sending = false; render();
+  }));
+}
+
+async function writeState(next){
+  writeErr = ""; state = next; render();
+  try { await D.set(ROOT + "/state", next); }
+  catch(e){ console.error(e); writeErr = "No se pudo guardar el cambio. Revisá la conexión."; render(); }
+}
+function createGame(){
+  const order = Q.map((_,i) => i);
+  for (let i = order.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [order[i],order[j]] = [order[j],order[i]]; }
+  const teams = Array.from({length:setupDraft.n}, (_,i) => ({id:"t"+(i+1), name:(setupDraft.names[i]||"").trim() || DEFAULT_NAMES[i], color:COLORS[i]}));
+  if (setupDraft.otro) teams.push({...OTRO});
+  writeState({gameId:"g"+Date.now().toString(36), status:"lobby", q:0, qk:"", startedAt:0, duration:setupDraft.dur, teams, order, results:{}, counts:{}});
+}
+async function reveal(){
+  if (!state || state.status !== "question") return;
+  const qi = state.q, qq = Q[state.order[qi]], gid = state.gameId;
+  /* Cerrar la pregunta primero (las reglas rechazan respuestas nuevas) y después contar. */
+  const closing = {...state, status:"reveal", qk:""};
+  state = closing; render();
+  try { await D.set(ROOT + "/state", closing); } catch(e){ console.error(e); }
+  const ans = (await D.get(`${ROOT}/answers/${gid}/q${qi}`).catch(() => null)) || qAnswers(qi);
+  const res = {}, counts = [0,0,0,0];
+  state.teams.forEach(t => { res[t.id] = {ok:0, bad:0}; });
+  Object.values(ans).forEach(a => {
+    if (!a || a.o == null || !res[a.team]) return;
+    counts[a.o]++;
+    if (a.o === qq.a) res[a.team].ok++; else res[a.team].bad++;
+  });
+  await writeState({...state, results:{...(state.results||{}), ["q"+qi]:res}, counts:{...(state.counts||{}), ["q"+qi]:counts}});
+}
+</script>
+</body>
+</html>
