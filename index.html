@@ -557,7 +557,7 @@ function playerView(){
     if (state.status === "final") return `<div class="card center"><h2>La partida terminó</h2><p class="lead">Esperá a que el docente abra una nueva.</p></div>`;
     const ready = joinDraft.name.trim().length >= 2 && joinDraft.team;
     return `<div class="card"><h2>Sumate al juego</h2>
-      <label for="pname">Tu nombre y apellido<input id="pname" maxlength="40" autocomplete="name" value="${esc(joinDraft.name)}" placeholder="Ej.: Sofía Pérez"></label>
+      <label for="pname">Tu nombre y apellido<input id="pname" maxlength="40" autocomplete="name" value="${esc(joinDraft.name)}" placeholder="Ej.: Pepito Gómez"></label>
       <h3>Elegí tu equipo</h3>
       <div class="teampicks">${state.teams.map(t => `<button class="teampick ${joinDraft.team===t.id?"on":""}" type="button" data-team="${t.id}" style="background:${t.color}" aria-pressed="${joinDraft.team===t.id}">${esc(t.name)}</button>`).join("")}</div>
       <button class="btn primary big" id="join" ${ready && !sending?"":"disabled"}>Entrar</button>
