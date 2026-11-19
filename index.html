@@ -210,7 +210,19 @@ const Q = [
   e:"La DoD fija qué tiene que cumplirse para dar algo por terminado: sin testing ni revisión, no está hecho."},
  {t:"Criterios de aceptación", q:"Historia: \"Como cliente quiero filtrar productos por precio\". ¿Cuál es un buen criterio de aceptación?",
   o:["Que el filtro sea lindo e intuitivo","Que el desarrollador lo termine el viernes","Que las ventas suban un 10%","Al elegir un rango de precios, solo se muestran productos dentro de ese rango"], a:3,
-  e:"Un criterio de aceptación es una condición concreta y verificable de esa historia."}
+  e:"Un criterio de aceptación es una condición concreta y verificable de esa historia."},
+ {t:"Experimento y prototipo", q:"¿Cuál es la diferencia entre un prototipo y un experimento?",
+  o:["Son lo mismo con distinto nombre","El prototipo representa la solución; el experimento es el método para validar una hipótesis y medir resultados","El experimento siempre es código en producción y el prototipo siempre es en papel","El prototipo se hace después del lanzamiento"], a:1,
+  e:"Un prototipo puede usarse dentro de un experimento, pero el experimento define la hipótesis, la prueba y la métrica de éxito."},
+ {t:"Pregunta de cortesía", q:"¿Quién es el campeón de la Liga Argentina 2026?",
+  o:["River Plate","Racing Club","Boquita","Vélez Sarsfield"], a:2, fixed:0,
+  e:"Pregunta de cortesía del profe. ¡Dale Boca!"},
+ {t:"Efemérides", q:"¿Qué pasó el 9/12?",
+  o:["Se declaró la Independencia argentina","Se fundó Boca Juniors","Perdió Boquita","Se inauguró el Obelisco"], a:2, fixed:2,
+  e:"9 de diciembre de 2018: River le ganó 3-1 a Boca la final de la Copa Libertadores en Madrid."},
+ {t:"Atención", q:"La respuesta correcta es:",
+  o:["A","B","C","D"], a:3,
+  e:"Era literal: la respuesta correcta era la D."}
 ];
 const L = ["A","B","C","D"];
 const COLORS = ["#ff3c8e","#19e3cf","#ffd166","#9b5cff","#3ddc84","#ff8a3d","#4cc9f0","#f9a8d4"];
@@ -277,7 +289,8 @@ let room = normCode(params.get("c")); if (!COMISIONES.includes(room)) room = "";
 if (MOCK && params.get("yo")) pid = "p" + params.get("yo").replace(/[^a-z0-9]/gi, "");  /* modo prueba: varios alumnos en un mismo navegador */
 else if (!pid){ pid ="p" + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); store.set("gpd2-pid", pid); }
 let me = null, myAnswers = {}, writeErr = "", sending = false;
-let setupDraft = {n:6, names:Array(8).fill(""), dur:30, otro:true, nq:Q.length};
+const DURACION = 20;  // segundos por pregunta
+let setupDraft = {n:6, names:Array(8).fill(""), dur:DURACION, otro:true, nq:Q.length};
 let joinDraft = {name: store.get("gpd2-name") || "", team:null};
 let confirmReset = false, autoRevealFor = null, unsubGame = null, unsubMine = null, subscribedGame = null;
 
@@ -317,7 +330,7 @@ function connect(){
     e => { console.error(e); renderMsg("Sin permiso para leer la partida", "Revisá las reglas de la base de datos en Firebase (ver LEEME.md)."); });
   D.listen(ROOT + "/players", v => { players = v || {}; if (isHost) render(); else { me = players[pid] || null; render(); } });
   if (isHost) D.get(ROOT + "/config").then(c => {
-    if (c) setupDraft = {n:c.n || setupDraft.n, dur:c.dur || setupDraft.dur, nq:Math.min(c.nq || Q.length, Q.length), otro:c.otro !== false, names:Object.assign(Array(8).fill(""), c.names || [])};
+    if (c) setupDraft = {n:c.n || setupDraft.n, dur:DURACION, nq:Q.length, otro:c.otro !== false, names:Object.assign(Array(8).fill(""), c.names || [])};
     render();
   }).catch(() => {});
 }
@@ -457,12 +470,10 @@ function setupView(){
   const d = setupDraft;
   return `<div class="card">
     <div class="spread"><h1>Armá la partida · ${roomName(room)}</h1><button class="btn small" id="switchroom">Cambiar de comisión</button></div>
-    <p class="muted">Banco de ${Q.length} preguntas. Cada alumno responde desde su celular y su respuesta suma o resta puntos a su equipo.</p>
+    <p class="muted">${Q.length} preguntas de ${DURACION} segundos. Cada alumno responde desde su celular y su respuesta suma o resta puntos a su equipo.</p>
     ${rulesHTML}
     <div class="grid-setup">
       <label for="nTeams">Cantidad de equipos<select id="nTeams">${[2,3,4,5,6,7,8].map(n => `<option value="${n}" ${n===d.n?"selected":""}>${n} equipos</option>`).join("")}</select></label>
-      <label for="dur">Tiempo por pregunta<select id="dur">${[20,30,45,60].map(n => `<option value="${n}" ${n===d.dur?"selected":""}>${n} segundos</option>`).join("")}</select></label>
-      <label for="nq">Cantidad de preguntas<select id="nq">${[10,Q.length].map(n => `<option value="${n}" ${n===d.nq?"selected":""}>${n===Q.length ? "Todas (" + n + ")" : n + " al azar"}</option>`).join("")}</select></label>
     </div>
     <div class="grid-setup">${Array.from({length:d.n}, (_,i) => `<div class="teamrow"><span class="swatch" style="background:${COLORS[i]}"></span>
       <input id="tn${i}" data-tn="${i}" value="${esc(d.names[i])}" placeholder="Nombre del equipo ${i+1}" maxlength="28" aria-label="Nombre del equipo ${i+1}"></div>`).join("")}</div>
@@ -587,9 +598,13 @@ async function writeState(next){
   catch(e){ console.error(e); writeErr = "No se pudo guardar el cambio. Revisá la conexión."; render(); }
 }
 function createGame(){
-  const order = Q.map((_,i) => i);
-  for (let i = order.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [order[i],order[j]] = [order[j],order[i]]; }
-  order.length = Math.min(setupDraft.nq || Q.length, Q.length);
+  /* Preguntas con posición fija (fixed = índice en la partida); el resto, al azar. */
+  const fixed = Q.map((q,i) => ({i, pos:q.fixed})).filter(x => x.pos != null);
+  const rest = Q.map((_,i) => i).filter(i => Q[i].fixed == null);
+  for (let i = rest.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [rest[i],rest[j]] = [rest[j],rest[i]]; }
+  rest.length = Math.max(0, Math.min(setupDraft.nq || Q.length, Q.length) - fixed.length);
+  const order = rest.slice();
+  fixed.sort((a,b) => a.pos - b.pos).forEach(f => order.splice(Math.min(f.pos, order.length), 0, f.i));
   const teams = Array.from({length:setupDraft.n}, (_,i) => ({id:"t"+(i+1), name:(setupDraft.names[i]||"").trim() || DEFAULT_NAMES[i], color:COLORS[i]}));
   if (setupDraft.otro) teams.push({...OTRO});
   D.set(ROOT + "/config", {n:setupDraft.n, dur:setupDraft.dur, nq:setupDraft.nq, otro:setupDraft.otro, names:setupDraft.names.slice(0, setupDraft.n).map(x => (x||"").trim())}).catch(e => console.error(e));
@@ -603,7 +618,7 @@ async function reveal(){
   state = closing; render();
   try { await D.set(ROOT + "/state", closing); } catch(e){ console.error(e); }
   const ans = (await D.get(`${ROOT}/answers/${gid}/q${qi}`).catch(() => null)) || qAnswers(qi);
-  const res = {}, counts = [0,0,0,0];
+  const res = {}, counts = qq.o.map(() => 0);
   state.teams.forEach(t => { res[t.id] = {ok:0, bad:0}; });
   Object.values(ans).forEach(a => {
     if (!a || a.o == null || !res[a.team]) return;
